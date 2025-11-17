@@ -1,8 +1,3 @@
-# D'Jon Harrison
-# Date: 11/4/2025
-# Milestone 2 - Bacchus Winery Database Display
-# Purpose: Connect to the project_bacchus database and display all table data.
-
 import mysql.connector
 
 def connect_to_db():

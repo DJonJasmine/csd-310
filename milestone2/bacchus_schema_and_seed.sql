@@ -1,173 +1,162 @@
-CREATE DATABASE IF NOT EXISTS project_bacchus;
-USE project_bacchus;
+CREATE DATABASE IF NOT EXISTS bacchus_winery;
+USE bacchus_winery;
 
-/* =========================
-   DEPARTMENT TABLE
-   ========================= */
-CREATE TABLE department (
-    dept_id INT AUTO_INCREMENT PRIMARY KEY,
-    dept_name VARCHAR(50) NOT NULL
+DROP TABLE IF EXISTS Department;
+
+CREATE TABLE Department (
+	Dept_ID INT PRIMARY KEY AUTO_INCREMENT,
+    Dept_Name VARCHAR(50) NOT NULL,
+    Location VARCHAR(100),
+    Contact_Info VARCHAR(100)
 );
 
-/* =========================
-   EMPLOYEE TABLE
-   ========================= */
-CREATE TABLE employee (
-    employee_id INT AUTO_INCREMENT PRIMARY KEY,
-    dept_id INT NOT NULL,
-    first_name VARCHAR(50),
-    last_name VARCHAR(50),
-    position VARCHAR(50),
-    supervisor_id INT NULL,
-    hire_date DATE,
-    FOREIGN KEY (dept_id) REFERENCES department(dept_id),
-    FOREIGN KEY (supervisor_id) REFERENCES employee(employee_id)
+-- SELECT * FROM Department;
+
+INSERT INTO Department (Dept_Name, Location, Contact_Info)
+VALUES
+('Finance', 'Main Office', 'jcollins@bacchus.com'),
+('Marketing', 'Downtown Office', 'rmurphy@bacchus.com'),
+('Production', 'Winery Floor', 'hdoyle@bacchus.com'),
+('Distribution', 'Shipping Office', 'mcostanza@bacchus.com');
+
+DROP TABLE IF EXISTS Employee;
+
+CREATE TABLE Employee (
+    Employee_ID INT PRIMARY KEY AUTO_INCREMENT,
+    First_Name VARCHAR(50) NOT NULL,
+    Last_Name VARCHAR(50) NOT NULL,
+    Dept_ID INT,
+    Supervisor_ID INT,
+    Job_Title VARCHAR(50),
+    Hire_Date DATE,
+    Contact_Info VARCHAR(100),
+    Salary DECIMAL(10,2),
+    FOREIGN KEY (Dept_ID) REFERENCES Department(Dept_ID)
 );
 
-/* =========================
-   EMPLOYEE HOURS TABLE
-   ========================= */
-CREATE TABLE employee_hours (
-    hours_id INT AUTO_INCREMENT PRIMARY KEY,
-    employee_id INT NOT NULL,
-    quarter VARCHAR(10),
-    year INT,
-    hours_worked DECIMAL(6,2),
-    FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
+ALTER TABLE Employee
+ADD CONSTRAINT fk_supervisor
+FOREIGN KEY (Supervisor_ID)
+REFERENCES Employee(Employee_ID);
+
+SET FOREIGN_KEY_CHECKS = 1;
+INSERT INTO Employee
+(First_Name, Last_Name, Dept_ID, Supervisor_ID, Job_Title, Hire_Date, Contact_Info, Salary)
+VALUES
+('Janet', 'Collins', 1, NULL, 'Finance & Payroll Manager', '2019-03-16', 'jcollins@bacchus.com', 68000.00),
+('Roz', 'Murphy', 2, NULL, 'Marketing Manager', '2022-10-02', 'rmuphy@bacchus.com', 75000.00),
+('Bob', 'Ulrich', 2, 2, 'Marketing Assistant', '2022-11-10', 'bobulrich@bacchus.com', 50000.00),
+('Henry', 'Doyle', 3, NULL, 'Production Manager', '2008-01-06', 'hdoyle@bacchus.com', 96000.00),
+('Maria', 'Costanza', 4, NULL, 'Distribution Manager', '2017-06-22', 'mcostanza@bacchus.com', 68000.00);
+
+-- SELECT * FROM Employee;
+
+DROP TABLE IF EXISTS Employee_Hour;
+
+CREATE TABLE Employee_Hour (
+	Hours_ID INT PRIMARY KEY AUTO_INCREMENT,
+    Employee_ID INT,
+    Quarter ENUM('Q1','Q2','Q3','Q4') NOT NULL,
+    Year YEAR NOT NULL,
+    Hours_Worked DECIMAL(6,2) NOT NULL,
+    FOREIGN KEY (Employee_ID) REFERENCES Employee(Employee_ID)
 );
 
-/* =========================
-   SUPPLIER TABLE
-   ========================= */
-CREATE TABLE supplier (
-    supplier_id INT AUTO_INCREMENT PRIMARY KEY,
-    supplier_name VARCHAR(100),
-    item_supplied VARCHAR(100),
-    contact_info VARCHAR(100)
+-- SELECT * FROM Employee_Hour;
+
+DROP TABLE IF EXISTS Supplier;
+
+CREATE TABLE Supplier (
+	Supplier_ID INT PRIMARY KEY AUTO_INCREMENT,
+    Supplier_Name VARCHAR(100) NOT NULL,
+    Item_Supplied VARCHAR(100),
+    Contact_Info VARCHAR(100),
+    Address VARCHAR(150),
+    City VARCHAR(50),
+    State CHAR(2),
+    Zip CHAR(10)
 );
 
-/* =========================
-   DISTRIBUTOR TABLE
-   ========================= */
-CREATE TABLE distributor (
-    distributor_id INT AUTO_INCREMENT PRIMARY KEY,
-    distributor_name VARCHAR(100),
-    region VARCHAR(100),
-    contact_info VARCHAR(100)
+INSERT INTO Supplier
+(Supplier_Name, Item_Supplied, Contact_Info, Address, City, State, Zip)
+VALUES
+('Closure Craftsman', 'Bottles and Corks', 'sales@closurecraftsman.com', '150 Port Circle Dr.', 'Fairfield', 'CA', '94534'),
+('The Vinculum Print House', 'Labels and Boxes', 'orders@vinculumprint.com', '88 Production Way', 'Tualatin', 'OR', '97062'),
+('CellarFlow Equipment', 'Vats and Tubing', 'info@cellarflow.net', '201 Industry Blvd.', 'Woodinville', 'WA', '98072');
+
+-- SELECT * FROM Supplier;
+
+DROP TABLE IF EXISTS Distributor;
+
+CREATE TABLE Distributor (
+	Distributor_ID INT PRIMARY KEY AUTO_INCREMENT,
+    Distributor_Name VARCHAR(100) NOT NULL,
+    Region VARCHAR(100),
+    Contact_Info VARCHAR(100),
+    Address VARCHAR(150),
+    City VARCHAR(50),
+    State CHAR(2),
+    Zip CHAR(10)
 );
 
-/* =========================
-   PRODUCT TABLE
-   ========================= */
-CREATE TABLE product (
-    product_id INT AUTO_INCREMENT PRIMARY KEY,
-    product_name VARCHAR(100),
-    wine_type VARCHAR(50),
-    wine_year INT,
-    quantity_produced INT,
-    unit_price DECIMAL(10,2)
+-- SELECT * FROM Distributor;
+
+DROP TABLE IF EXISTS Product;
+
+CREATE TABLE Product (
+	Product_ID INT PRIMARY KEY AUTO_INCREMENT,
+    Product_Name VARCHAR(100) NOT NULL,
+    Wine_Type ENUM('Merlot','Cabernet','Chablis','Chardonnay') NOT NULL,
+    Vintage_Year YEAR NOT NULL,
+    Quantity_Produced INT NOT NULL,
+    Retail_Price DECIMAL(10,2),
+    Supplier_ID INT,
+    Description VARCHAR(255),
+	FOREIGN KEY (Supplier_ID) REFERENCES Supplier(Supplier_ID)
 );
 
-/* =========================
-   INVENTORY TABLE
-   ========================= */
-CREATE TABLE inventory (
-    inventory_id INT AUTO_INCREMENT PRIMARY KEY,
-    product_id INT NOT NULL,
-    quantity_on_hand INT,
-    last_updated DATE,
-    FOREIGN KEY (product_id) REFERENCES product(product_id)
+-- SELECT * FROM Product;
+
+DROP TABLE IF EXISTS Shipment;
+
+CREATE TABLE Shipment (
+	Shipment_ID INT PRIMARY KEY AUTO_INCREMENT,
+    Supplier_ID INT NOT NULL,
+    Distributor_ID INT NOT NULL,
+    Shipment_Date DATE,
+    Expected_Delivery DATE NOT NULL,
+    Actual_Delivery DATE,
+    Delivery_Status ENUM('Pending','In Transit','Delivered','Delayed'),
+    FOREIGN KEY (Supplier_ID) REFERENCES Supplier(Supplier_ID),
+    FOREIGN KEY (Distributor_ID) REFERENCES Distributor(Distributor_ID)
 );
 
-/* =========================
-   SHIPMENT TABLE
-   ========================= */
-CREATE TABLE shipment (
-    shipment_id INT AUTO_INCREMENT PRIMARY KEY,
-    supplier_id INT NOT NULL,
-    distributor_id INT NOT NULL,
-    shipment_date DATE,
-    expected_delivery DATE,
-    actual_delivery_date DATE,
-    delivery_status VARCHAR(50),
-    FOREIGN KEY (supplier_id) REFERENCES supplier(supplier_id),
-    FOREIGN KEY (distributor_id) REFERENCES distributor(distributor_id)
+-- SELECT * FROM Shipment;
+
+DROP TABLE IF EXISTS Shipment_Detail;
+
+CREATE TABLE Shipment_Detail (
+	ShipmentDetail_ID INT PRIMARY KEY AUTO_INCREMENT,
+    Shipment_ID INT NOT NULL,
+    Product_ID INT NOT NULL,
+    Quantity INT NOT NULL,
+    Unit_Price DECIMAL(10,2) NOT NULL,
+    Subtotal DECIMAL(12,2),
+    FOREIGN KEY (Shipment_ID) REFERENCES Shipment(Shipment_ID),
+    FOREIGN KEY (Product_ID) REFERENCES Product(Product_ID)
 );
 
-/* =========================
-   SHIPMENT DETAIL TABLE
-   ========================= */
-CREATE TABLE shipment_detail (
-    shipment_detail_id INT AUTO_INCREMENT PRIMARY KEY,
-    shipment_id INT NOT NULL,
-    product_id INT NOT NULL,
-    quantity INT,
-    unit_price DECIMAL(10,2),
-    subtotal DECIMAL(10,2),
-    FOREIGN KEY (shipment_id) REFERENCES shipment(shipment_id),
-    FOREIGN KEY (product_id) REFERENCES product(product_id)
+-- SELECT * FROM Shipment_Detail;
+
+DROP TABLE IF EXISTS Inventory;
+
+CREATE TABLE Inventory (
+	Inventory_ID INT PRIMARY KEY AUTO_INCREMENT,
+    Product_ID INT NOT NULL,
+    Quantity_On_Hand INT NOT NULL,
+    Last_Updated DATE NOT NULL,
+    Location VARCHAR(50),
+    Reorder_Level INT,
+    Reorder_Date DATE,
+    FOREIGN KEY (Product_ID) REFERENCES Product(Product_ID)
 );
-
-/* =====================================
-   INSERT SEED DATA
-   ===================================== */
-
-/* DEPARTMENT */
-INSERT INTO department (dept_name) VALUES
-('Production'),
-('Sales'),
-('Tasting Room'),
-('Distribution');
-
-/* EMPLOYEE */
-INSERT INTO employee (dept_id, first_name, last_name, position, supervisor_id, hire_date) VALUES
-(1, 'Stan', 'Bacchus', 'Owner', NULL, '2010-03-01'),
-(1, 'Davis', 'Bacchus', 'Winemaker', 1, '2012-06-15'),
-(2, 'Claire', 'Monroe', 'Sales Manager', 1, '2018-09-10'),
-(3, 'Emily', 'Hart', 'Tasting Lead', 3, '2021-05-21'),
-(4, 'Marcus', 'Reed', 'Distribution Coordinator', 1, '2019-04-14'),
-(4, 'Lana', 'Chen', 'Logistics Assistant', 5, '2022-11-01');
-
-/* EMPLOYEE HOURS */
-INSERT INTO employee_hours (employee_id, quarter, year, hours_worked) VALUES
-(1, 'Q1', 2025, 520),
-(2, 'Q1', 2025, 480),
-(3, 'Q1', 2025, 450),
-(4, 'Q1', 2025, 400),
-(5, 'Q1', 2025, 430),
-(6, 'Q1', 2025, 395);
-
-/* SUPPLIER */
-INSERT INTO supplier (supplier_name, item_supplied, contact_info) VALUES
-('Valley Oak Barrels', 'Wine Barrels', 'oak@valley.com'),
-('Napa Glassworks', 'Bottles', 'glass@napa.com'),
-('Harvest Labels Co', 'Labels', 'labels@harvest.com');
-
-/* DISTRIBUTOR */
-INSERT INTO distributor (distributor_name, region, contact_info) VALUES
-('Golden State Distributing', 'California', 'ca@goldstate.com'),
-('Northwest Wine Co', 'Oregon Washington', 'nw@wineco.com'),
-('Coastal Beverages', 'East Coast', 'coastal@bev.com');
-
-/* PRODUCT */
-INSERT INTO product (product_name, wine_type, wine_year, quantity_produced, unit_price) VALUES
-('Cabernet Reserve', 'Red', 2022, 850, 55.00),
-('Chardonnay Estate', 'White', 2023, 900, 35.00),
-('Rosé Summer Blend', 'Rosé', 2023, 700, 27.50);
-
-/* INVENTORY */
-INSERT INTO inventory (product_id, quantity_on_hand, last_updated) VALUES
-(1, 600, '2025-01-15'),
-(2, 720, '2025-01-15'),
-(3, 500, '2025-01-15');
-
-/* SHIPMENT */
-INSERT INTO shipment (supplier_id, distributor_id, shipment_date, expected_delivery, actual_delivery_date, delivery_status) VALUES
-(1, 1, '2025-01-10', '2025-01-20', '2025-01-19', 'Delivered'),
-(2, 2, '2025-01-12', '2025-01-22', '2025-01-23', 'Delayed');
-
-/* SHIPMENT DETAIL */
-INSERT INTO shipment_detail (shipment_id, product_id, quantity, unit_price, subtotal) VALUES
-(1, 1, 120, 55.00, 6600.00),
-(1, 2, 150, 35.00, 5250.00),
-(2, 3, 200, 27.50, 5500.00);
